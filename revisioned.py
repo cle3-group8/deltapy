@@ -224,9 +224,9 @@ while grabbed:
     if key == ord("q") or (key == 27):
         break
     if key == ord(" "):  # space to enter pause mode: wait until spacebar pressed again
-      key = 0x00
-      while key != ord(" "):
-         key = cv2.waitKey(1) & 0xFF
+        key = 0x00
+        while key != ord(" "):
+            key = cv2.waitKey(1) & 0xFF
 
 camera.release()
 cv2.destroyAllWindows()
