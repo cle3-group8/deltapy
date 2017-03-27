@@ -1,0 +1,5 @@
+*.MOV
+*.mp4
+bin/
+testwrapper.py
+.idea/
