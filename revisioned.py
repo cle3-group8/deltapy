@@ -5,6 +5,11 @@ import imutils
 import time
 import cv2
 import numpy as np
+from socketIO_client import SocketIO, LoggingNamespace
+
+import logging
+logging.getLogger('socketIO-client').setLevel(logging.DEBUG)
+logging.basicConfig()
 
 # GLOBALS
 kernel5 = np.array([[0, 1, 1, 1, 0],
@@ -90,6 +95,10 @@ if grabbed:
     averageFrame = gray
     slowFrame = gray
 
+
+# INITIALIZE SOCKET.IO
+socketIO = SocketIO('localhost', 3000, LoggingNamespace)
+
 # END OF FIRST FRAME, START OF PROCESSING LOOP.
 while grabbed:
     (grabbed, frame) = camera.read()
@@ -130,6 +139,8 @@ while grabbed:
     i = -1  # count of detected objects
     w = np.float32(np.zeros(maxObjects))  # reset object width
     h = np.float32(np.zeros(maxObjects))  # reset object height
+
+    socket_cnts = []
 
     # Loop over all countours (possible objects);
     for c in cnts:
@@ -196,7 +207,13 @@ while grabbed:
         # When it is confirmed a real object
         if ((abs(xdist[i]) > xdistThresh) or (abs(ydist[i]) > ydistThresh)) \
                 and ((abs(xvelFilt[i]) > xvelThresh) or (abs(yvelFilt[i] > yvelThresh))):
-            print("%5.1f,%5.1f, %5.1f,  %5.2f, %5.0f" % (xc[i], ysp - yc[i], w[i], xvelFilt[i], xdist[i]))
+            print("%5.1f,%5.1f, %5.1f,  %5.2f, %5.0f" % (xc[i], yc[i], w[i], xvelFilt[i], xdist[i]))
+            # Emit it to the central gameserver
+
+            socket_cnts.append({
+                "y": int(yc[i]),
+                "x": int(xc[i])
+            })
 
             motionDetect = True
             # Draw rectangle around object
@@ -206,6 +223,7 @@ while grabbed:
     if motionDetect:
         noMotionCount = 0
         motionCount += 1
+        socketIO.emit('objectupdate', socket_cnts)
     else:  # no motion found anywhere
         xvelFilt = np.float32(np.zeros(maxObjects))  # reset average motion to 0
         yvelFilt = np.float32(np.zeros(maxObjects))
