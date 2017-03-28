@@ -39,7 +39,7 @@ yo = np.float32(np.zeros(maxObjects))  # y last frame center coordinates
 yvel = np.float32(np.zeros(maxObjects))  # delta-y per frame
 
 # CONFIG VALUES TODO: move to json
-procWidth = 620  # processing width (x resolution) of frame
+procWidth = 1080  # processing width (x resolution) of frame
 fracF = 0.25  # adaptation fraction of background on each frame
 GB = 15  # gaussian blur size
 fracS = .25  # adaptation during motion event
@@ -97,7 +97,7 @@ if grabbed:
 
 
 # INITIALIZE SOCKET.IO
-socketIO = SocketIO('localhost', 3000, LoggingNamespace)
+socketIO = SocketIO('game.maashaven.win', 3000, LoggingNamespace)
 
 # END OF FIRST FRAME, START OF PROCESSING LOOP.
 while grabbed:
@@ -223,12 +223,13 @@ while grabbed:
     if motionDetect:
         noMotionCount = 0
         motionCount += 1
-        socketIO.emit('objectupdate', socket_cnts)
     else:  # no motion found anywhere
         xvelFilt = np.float32(np.zeros(maxObjects))  # reset average motion to 0
         yvelFilt = np.float32(np.zeros(maxObjects))
         noMotionCount += 1
         motionCount = 0
+
+    socketIO.emit('objectupdate', socket_cnts)
 
     # Show original video with rectangles on it
     cv2.imshow("Video", frame)  # original video with detected rectangle and info overlay
